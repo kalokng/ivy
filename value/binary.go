@@ -1316,6 +1316,43 @@ func init() {
 				},
 			},
 		},
+
+		{
+			name:        "?",
+			elementwise: false,
+			whichType:   binaryArithType,
+			fn: [numType]binaryFn{
+				intType: func(c Context, u, v Value) Value {
+					a, b := u.(Int), v.(Int)
+					if a < 0 {
+						Errorf("deal: bad count")
+					}
+					if b < 0 || a > b {
+						Errorf("deal: illegal value %v", b)
+					}
+					n := make([]Value, a)
+					o := Int(c.Config().Origin())
+					deal(n, o, b, c.Config().Random())
+					return NewVector(n)
+				},
+				bigIntType: func(c Context, u, v Value) Value {
+					a, b := u.(BigInt), v.(BigInt)
+					if a.Sign() < 0 {
+						Errorf("deal: bad count")
+					}
+					if a.Cmp(MaxBigInt63) >= 0 {
+						Errorf("left operand of deal must be small integers")
+					}
+					if b.Sign() < 0 || a.Cmp(b.Int) > 0 {
+						Errorf("deal: illegal value %v", b)
+					}
+					n := make([]Value, a.Int64())
+					o := BigInt{c.Config().BigOrigin()}
+					bigIntDeal(n, o, b, c.Config().Random())
+					return NewVector(n)
+				},
+			},
+		},
 	}
 
 	for _, op := range ops {
